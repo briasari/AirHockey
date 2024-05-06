@@ -283,7 +283,7 @@ namespace AirHockey
             if (player1Top.IntersectsWith(ball))
             {
                 ballYSpeed = -ballYSpeed;
-                ball.Y = player1.Y - ball.Height;
+                ball.Y = player1.Y - ball.Height - 1;
             }
             else if (player1Bottom.IntersectsWith(ball))
             {
@@ -305,12 +305,12 @@ namespace AirHockey
             if (player2Top.IntersectsWith(ball))
             {
                 ballYSpeed = -ballYSpeed;
-                ball.Y = player2.Y - ball.Height;
+                ball.Y = player2.Y - ball.Height - 1;
             }
             else if (player2Bottom.IntersectsWith(ball))
             {
                 ballYSpeed = -ballYSpeed;
-                ball.Y = player2.Y + player2.Height;
+                ball.Y = player2.Y + player2.Height + 1;
             }
             else if (player2Left.IntersectsWith(ball))
             {
