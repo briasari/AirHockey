@@ -58,7 +58,7 @@
             this.player1Label.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.player1Label.Location = new System.Drawing.Point(-8, 275);
             this.player1Label.Name = "player1Label";
-            this.player1Label.Size = new System.Drawing.Size(35, 23);
+            this.player1Label.Size = new System.Drawing.Size(34, 23);
             this.player1Label.TabIndex = 1;
             this.player1Label.Text = "0";
             this.player1Label.TextAlign = System.Drawing.ContentAlignment.TopCenter;

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Media;
 using System.Diagnostics;
+using System.Threading;
 
 namespace AirHockey
 {
@@ -32,13 +33,16 @@ namespace AirHockey
         Rectangle bottomGoalBorder = new Rectangle(141, 490, 150, 75);
         Rectangle goalNet2 = new Rectangle(149, 500, 135, 65);
 
+        Rectangle scoreZone1 = new Rectangle(164, 0, 100, 20);
+        Rectangle scoreZone2 = new Rectangle(164, 541, 100, 20);
+
         int player1Score = 0;
         int player2Score = 0;
 
         int player1Speed = 5;
         int player2Speed = 5;
-        int ballXSpeed = 2;
-        int ballYSpeed = -2;
+        int ballXSpeed = 0;
+        int ballYSpeed = 0;
 
         bool wPressed = false;
         bool aPressed = false;
@@ -56,17 +60,12 @@ namespace AirHockey
 
         Stopwatch stopwatch = new Stopwatch();
 
-        int increaseVar = 40;
-        int decreaseVar = 5;
-
         Random randGen = new Random();
 
 
         public Form1()
         {
             InitializeComponent();
-
-            stopwatch.Start();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -79,6 +78,9 @@ namespace AirHockey
             e.Graphics.FillRectangle(backgroundBrush, goalNet2);
 
             e.Graphics.FillRectangle(blackBrush, 0, 300, 450, 3);
+
+            e.Graphics.FillRectangle(redBrush, scoreZone1);
+            e.Graphics.FillRectangle(redBrush, scoreZone2);
 
             //moving objects
             e.Graphics.FillRectangle(blueBrush, player1);
@@ -167,9 +169,22 @@ namespace AirHockey
 
         private void gameTimer_Tick(object sender, EventArgs e)
         {
+            player1Label.Text = $"{player1Score}";
+            player2Label.Text = $"{player2Score}";
+
+            PlayerMovement();
+            ScoreWinnerCheck();
+            BallPlayerIntersections();
+            BallMovement();
+
+            Refresh();
+        }
+
+        public void PlayerMovement()
+        {
             //sides, player1
             player1Top.X = player1.X;
-            player1Top.Y = player1.Y;
+            player1Top.Y = player1.Y - 1;
 
             player1Bottom.X = player1.X;
             player1Bottom.Y = player1.Y + 50;
@@ -182,7 +197,7 @@ namespace AirHockey
 
             //sides, player2
             player2Top.X = player2.X;
-            player2Top.Y = player2.Y;
+            player2Top.Y = player2.Y - 1;
 
             player2Bottom.X = player2.X;
             player2Bottom.Y = player2.Y + 50;
@@ -193,11 +208,77 @@ namespace AirHockey
             player2Right.X = player2.X + 50;
             player2Right.Y = player2.Y;
 
+            //move player1
+            if (wPressed == true && player1.Y >= 0)
+            {
+                player1.Y = player1.Y - player1Speed;
+            }
+            if (sPressed == true && player1.Y < 300 - player1.Height)
+            {
+                player1.Y = player1.Y + player1Speed;
+            }
+            if (dPressed == true && player1.X < this.Width - player1.Width)
+            {
+                player1.X = player1.X + player1Speed;
+            }
+            if (aPressed == true && player1.X >= 0)
+            {
+                player1.X = player1.X - player1Speed;
+            }
 
-            ball.X = ball.X + ballXSpeed;
-            ball.Y = ball.Y + ballYSpeed;
+            //move player2
+            if (upPressed == true && player2.Y >= 300)
+            {
+                player2.Y = player2.Y - player2Speed;
+            }
+            if (downPressed == true && player2.Y < this.Height - player2.Height)
+            {
+                player2.Y = player2.Y + player2Speed;
+            }
+            if (rightPressed == true && player2.X < this.Width - player2.Width)
+            {
+                player2.X = player2.X + player2Speed;
+            }
+            if (leftPressed == true && player2.X > 0)
+            {
+                player2.X = player2.X - player2Speed;
+            }
+        }
 
+        public void ScoreWinnerCheck()
+        {
+            //check for score
+            if (ball.IntersectsWith(scoreZone1))
+            {
+                player2Score++;
+                ball.X = 195; ball.Y = 280;
+                ballXSpeed = 0;
+                ballYSpeed = 0;
+            }
+            else if (ball.IntersectsWith(scoreZone2))
+            {
+                player1Score++;
+                ball.X = 195; ball.Y = 280;
+                ballXSpeed = 0;
+                ballYSpeed = 0;
+            }
 
+            //check for winner
+            if (player1Score == 3)
+            {
+                winLabel.Text = "Player 1 Wins!";
+                gameTimer.Stop();
+            }
+
+            if (player2Score == 3)
+            {
+                winLabel.Text = "Player 2 Wins!";
+                gameTimer.Stop();
+            }
+        }
+
+        public void BallPlayerIntersections()
+        {
             //check for intersection with player1
             if (player1Top.IntersectsWith(ball))
             {
@@ -207,7 +288,7 @@ namespace AirHockey
             else if (player1Bottom.IntersectsWith(ball))
             {
                 ballYSpeed = -ballYSpeed;
-                ball.Y = player1.Y + player1.Height;
+                ball.Y = player1.Y + player1.Height + 1;
             }
             else if (player1Left.IntersectsWith(ball))
             {
@@ -241,8 +322,21 @@ namespace AirHockey
                 ballXSpeed = -ballXSpeed;
                 ball.X = player2.X + player2.Width;
             }
+        }
 
+        public void BallMovement()
+        {
+            //move ball
+            ball.X = ball.X + ballXSpeed;
+            ball.Y = ball.Y + ballYSpeed;
 
+            if (ball.IntersectsWith(player1) || ball.IntersectsWith(player2) && ball.X == 195 && ball.Y == 280)
+            {
+                ballXSpeed = 5;
+                ballYSpeed = -5;
+            }
+
+            //bounds
             if (ball.Y <= 0 || ball.Y >= this.Height - ball.Height)
             {
                 ballYSpeed = -ballYSpeed;
@@ -251,76 +345,6 @@ namespace AirHockey
             {
                 ballXSpeed = -ballXSpeed;
             }
-
-
-            //move player1
-            if (wPressed == true && player1.Y >= 0)
-            {
-                player1.Y = player1.Y - player1Speed;
-            }
-            if (sPressed == true && player1.Y < 300 - player1.Height)
-            {
-                player1.Y = player1.Y + player1Speed;
-            }
-            if (dPressed == true && player1.X < this.Width - player1.Width)
-            {
-                player1.X = player1.X + player1Speed;
-            }
-            if (aPressed == true && player1.X >= 0)
-            {
-                player1.X = player1.X - player1Speed;
-            }
-
-            //move player2
-            if (upPressed == true && player2.Y >= 300)
-            {
-                player2.Y = player2.Y - player2Speed;
-            }
-            if (downPressed == true && player2.Y < this.Height - player2.Height)
-            {
-                player2.Y = player2.Y + player2Speed;
-            }
-            if (rightPressed == true && player1.X < this.Width - player2.Width)
-            {
-                player2.X = player2.X + player2Speed;
-            }
-            if (leftPressed == true && player2.X > 0)
-            {
-                player2.X = player2.X - player2Speed;
-            }
-
-
-
-            //(149, 0, 135, 65);
-
-            //if (65 > ball.X > 
-
-            //check for score
-            if (ball.X <= 65 - ball.Width && ball.X <= 149 + 135 - ball.Height && ball.Y <=135)
-            {
-                player1Score++;
-                ball.X = 195;
-                ball.Y = 280;
-                ballXSpeed = 0;
-                ballYSpeed = 0;
-            }
-
-                //check for winner
-
-                if (player1Score == 3)
-                {
-                    winLabel.Text = "Player 1 Wins!";
-                    gameTimer.Stop();
-                }
-
-            if (player2Score == 3)
-            {
-                winLabel.Text = "Player 2 Wins!";
-                gameTimer.Stop();
-            }
-
-            Refresh();
-
         }
     }
 }
